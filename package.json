@@ -1,0 +1,92 @@
+{
+  "name": "clipboard-mac",
+  "version": "1.0.0",
+  "description": "Mac 剪贴板管理器 - 支持 Command+Shift+V 快捷键唤起历史记录",
+  "main": "dist/main/index.js",
+  "scripts": {
+    "dev": "electron-vite dev",
+    "build": "electron-vite build",
+    "preview": "electron-vite preview",
+    "package": "electron-builder --config",
+    "package:dir": "electron-builder --config --dir",
+    "package:mac": "electron-builder --config --mac",
+    "package:win": "electron-builder --config --win",
+    "package:linux": "electron-builder --config --linux"
+  },
+  "keywords": [
+    "electron",
+    "clipboard",
+    "macos",
+    "productivity"
+  ],
+  "author": "",
+  "license": "MIT",
+  "build": {
+    "appId": "com.clipboard.mac",
+    "productName": "Clipboard Mac",
+    "copyright": "Copyright © 2025",
+    "mac": {
+      "category": "public.app-category.utilities",
+      "target": "dmg",
+      "hardenedRuntime": false,
+      "gatekeeperAssess": false,
+      "extendInfo": {
+        "NSCameraUsageDescription": "应用需要访问摄像头以处理图片剪贴板内容",
+        "NSMicrophoneUsageDescription": "应用需要访问麦克风",
+        "NSLocationWhenInUseUsageDescription": "应用需要访问位置信息",
+        "NSDocumentsFolderUsageDescription": "应用需要访问文档文件夹",
+        "NSDownloadsFolderUsageDescription": "应用需要访问下载文件夹",
+        "NSNetworkVolumesUsageDescription": "应用需要访问网络音量",
+        "NSRemovableVolumesUsageDescription": "应用需要访问可移动音量",
+        "NSSystemAdministrationUsageDescription": "应用需要系统管理权限"
+      }
+    },
+    "dmg": {
+      "background": "resources/background.png",
+      "iconSize": 100,
+      "contents": [
+        {
+          "x": 130,
+          "y": 200,
+          "type": "link",
+          "path": "/Applications"
+        },
+        {
+          "x": 350,
+          "y": 200,
+          "type": "file"
+        }
+      ]
+    },
+    "files": [
+      "dist/**/*",
+      "node_modules/**/*"
+    ],
+    "extraResources": [
+      "resources/**/*"
+    ]
+  },
+  "dependencies": {
+    "@mantine/core": "^7.14.2",
+    "@mantine/hooks": "^7.14.2",
+    "@mantine/notifications": "^7.14.2",
+    "@tabler/icons-react": "^3.35.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.14",
+    "@types/react": "^18.3.3",
+    "@types/react-dom": "^18.3.0",
+    "@vitejs/plugin-react": "^4.2.1",
+    "electron": "^31.1.1",
+    "electron-builder": "^24.13.3",
+    "electron-vite": "^2.0.0",
+    "typescript": "^5.5.2",
+    "vite": "^5.4.0"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=8.0.0"
+  }
+}

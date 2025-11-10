@@ -13,6 +13,7 @@
 
 - **框架**：Electron、React、TypeScript、Next.js App Router
 - **UI 库**：Shadcn UI、Tailwind CSS、Ant Design、Mantine
+- **包管理工具**：pnpm
 - **工具**：electron-builder、Node.js（最新稳定版）
 - **平台**：macOS、Windows、Linux
 

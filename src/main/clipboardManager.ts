@@ -1,4 +1,5 @@
-import { clipboard, nativeImage } from "electron";
+import { clipboard, nativeImage, BrowserWindow } from "electron";
+import { app } from "electron";
 
 export interface ClipboardItem {
   id: string;
@@ -96,8 +97,28 @@ class ClipboardManager {
         clipboard.writeImage(image);
       }
 
-      // 模拟 Command+V 粘贴（这里使用系统剪贴板，让系统自动处理粘贴）
-      // 在实际使用中，用户会手动按 Command+V 或应用会自动处理
+      // 发送系统级粘贴事件到活跃窗口
+      const activeWindow = BrowserWindow.getFocusedWindow();
+      if (activeWindow) {
+        // 尝试通过渲染进程执行粘贴
+        activeWindow.webContents.sendInputEvent({
+          type: "keyDown",
+          keyCode: process.platform === "darwin" ? "Command" : "Control",
+        });
+        activeWindow.webContents.sendInputEvent({
+          type: "keyDown",
+          keyCode: "V",
+        });
+        activeWindow.webContents.sendInputEvent({
+          type: "keyUp",
+          keyCode: "V",
+        });
+        activeWindow.webContents.sendInputEvent({
+          type: "keyUp",
+          keyCode: process.platform === "darwin" ? "Command" : "Control",
+        });
+      }
+
       return true;
     } catch (error) {
       console.error("粘贴失败:", error);

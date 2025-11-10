@@ -28,10 +28,15 @@ class WindowManager {
       maximizable: false,
       fullscreenable: false,
       movable: true,
-      focusable: true,
+      focusable: false, // 禁用焦点获取，避免桌面切换
       hasShadow: true,
       titleBarStyle: "hidden",
       backgroundColor: "#00000000",
+      // macOS 特定属性避免桌面切换
+      ...(process.platform === "darwin" && {
+        acceptFirstMouse: false,
+        enableLargerThanScreen: false,
+      }),
       webPreferences: {
         preload: path.join(__dirname, "../preload/index.js"),
         contextIsolation: true,
@@ -89,23 +94,50 @@ class WindowManager {
   showClipboardWindow(x: number, y: number) {
     if (!this.clipboardWindow) return;
 
-    // 计算窗口位置，确保不超出屏幕边界
-    const display = screen.getDisplayNearestPoint({ x, y });
-    const windowWidth = 400;
-    const windowHeight = 500;
+    // 获取光标所在显示器
+    const cursorPoint = { x, y };
+    const display = screen.getDisplayNearestPoint(cursorPoint);
 
-    let windowX = x - windowWidth / 2;
-    let windowY = y - windowHeight / 2;
+    // 计算窗口位置，在光标右下方显示
+    const windowWidth = 240; // 进一步减小宽度 (320 * 2/3 ≈ 240)
+    const windowHeight = 300; // 进一步减小高度 (400 * 2/3 ≈ 300)
 
-    // 边界检查
-    if (windowX < display.bounds.x) windowX = display.bounds.x;
+    // 初始位置：光标右下方
+    let windowX = x + 20;
+    let windowY = y + 20;
+
+    // 边界检查和调整
     if (windowX + windowWidth > display.bounds.x + display.bounds.width) {
-      windowX = display.bounds.x + display.bounds.width - windowWidth;
+      // 如果超出右边界，调整到光标左侧
+      windowX = x - windowWidth - 10;
     }
-    if (windowY < display.bounds.y) windowY = display.bounds.y;
+
+    if (windowX < display.bounds.x) {
+      // 如果超出左边界，贴左边界显示
+      windowX = display.bounds.x;
+    }
+
     if (windowY + windowHeight > display.bounds.y + display.bounds.height) {
-      windowY = display.bounds.y + display.bounds.height - windowHeight;
+      // 如果超出下边界，向上调整
+      windowY = display.bounds.y + display.bounds.height - windowHeight - 10;
     }
+
+    if (windowY < display.bounds.y) {
+      // 如果超出上边界，贴上边界显示
+      windowY = display.bounds.y;
+    }
+
+    // 确保位置在有效范围内
+    windowX = Math.max(windowX, display.bounds.x);
+    windowY = Math.max(windowY, display.bounds.y);
+    windowX = Math.min(
+      windowX,
+      display.bounds.x + display.bounds.width - windowWidth
+    );
+    windowY = Math.min(
+      windowY,
+      display.bounds.y + display.bounds.height - windowHeight
+    );
 
     // 设置窗口位置和大小
     this.clipboardWindow.setBounds({
@@ -115,9 +147,29 @@ class WindowManager {
       height: windowHeight,
     });
 
-    // 显示窗口
-    this.clipboardWindow.show();
-    this.clipboardWindow.focus();
+    // 显示窗口 - macOS 专用的桌面切换避免策略
+    if (process.platform === "darwin") {
+      // macOS 特定处理：使用 setSimpleFullScreen 和其他属性
+      this.clipboardWindow.setVisibleOnAllWorkspaces(true);
+      this.clipboardWindow.setAlwaysOnTop(true, "floating", 1);
+
+      // 使用 setSimpleFullScreen(false) 确保窗口不会影响桌面状态
+      this.clipboardWindow.setSimpleFullScreen(false);
+
+      // 延迟显示避免激活
+      setTimeout(() => {
+        if (this.clipboardWindow) {
+          this.clipboardWindow.showInactive();
+          this.clipboardWindow.setVisibleOnAllWorkspaces(false);
+        }
+      }, 1);
+    } else {
+      // 其他平台使用标准方法
+      this.clipboardWindow.setVisibleOnAllWorkspaces(true);
+      this.clipboardWindow.setAlwaysOnTop(true, "floating", 1);
+      this.clipboardWindow.showInactive();
+      this.clipboardWindow.setVisibleOnAllWorkspaces(false);
+    }
 
     // 发送消息给渲染进程，通知窗口已显示
     this.clipboardWindow.webContents.send("clipboard-window-shown");

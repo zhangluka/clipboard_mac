@@ -9,7 +9,7 @@ contextBridge.exposeInMainWorld("electronAPI", {
 
   // 窗口控制
   hideWindow: () => ipcRenderer.send("hide-window"),
-  hideClipboardWindow: () => ipcRenderer.send("clipboard-window-hide"),
+  hideClipboardWindow: () => ipcRenderer.send("hide-window"),
 
   // 光标位置
   getCursorPosition: () => ipcRenderer.invoke("get-cursor-position"),
